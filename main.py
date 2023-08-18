@@ -9,14 +9,14 @@ db = {}
 
 @app.route("/")
 def home():
-  return "home"
+  return render_template("home.html")
 
 
 @app.route("/search")
 def search():
   keyword = request.args.get("keyword")
   if keyword == None:
-      return "home"
+      return redirect("/")
   if keyword in db:
       jobs = db[keyword]
   else:
@@ -24,19 +24,20 @@ def search():
       wwr = extract_jobs_wwr(keyword)
       jobs = remote + wwr
       if jobs == []:
-        return "no result"
+        return render_template("no_result.html", keyword=keyword)
       db[keyword] = jobs
     
-  return "search"
+  return render_template("search.html", keyword=keyword, jobs=jobs)
 
 
 @app.route("/export")
 def export():
   keyword = request.args.get("keyword")
   if keyword == None:
-      return "home"
+      return redirect("/")
   if keyword not in db:
-      return "search"
+      return redirect(f"/search?keyword={keyword}")
+  save_to_file(keyword, db[keyword])
   return send_file(f"{keyword}.csv", as_attachment=True)
 
 
